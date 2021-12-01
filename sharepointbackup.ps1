@@ -4,7 +4,7 @@ try {
     $Global:Appsetting = Get-Content -Raw -Path $FilePathAppsetting -ErrorAction Stop  | ConvertFrom-Json
 }        
 catch {
-    $errorAppsettings = "ERROR: appsettings.json not found or empty"
+    $errorAppsettings = "ERROR: appsettings.json not found, empty or bad format file"
     Write-FatalLog $errorAppsettings
     New-Item -ItemType "file" -Path "$($PSScriptRoot)/Logs/" -Name "FATAL_LOG.txt" -Value $errorAppsettings -Force | Out-Null
     exit $LASTEXITCODE
@@ -134,6 +134,11 @@ $Global:tenant = $Appsetting.UserSettings.tenant
 $Global:Longpath
 $Global:replace
 
+if ($storeInCloud) {
+    $Global:date = Get-Date -Format "yyyy-MM-dd-hh-mm-ss"
+    $Global:BucketName = "$($Appsetting.CloudSettings.bucketName)/$($date)"
+}
+
 if ($Appsetting.FolderSettings.OS -eq "Win") {
     $Longpath = "\\?\"
     $replace = .Replace("/", "\")
@@ -182,7 +187,8 @@ function ConnectToSPO{
 #>
 function UploadAndDelete {
     param (
-        [string]$File        
+        [string]$File,
+        $BucketName
     )
 
     $FileName = $File.Substring(($File.lastindexof("\") + 1))
@@ -190,8 +196,6 @@ function UploadAndDelete {
     $accesKey = $Appsetting.CloudSettings.accesKey
     $secretKey = $Appsetting.CloudSettings.secretKey
     $profileName = $Appsetting.CloudSettings.profileName
-    $date = Get-Date -Format "yyyy-MM-dd"
-    $bucketName = "$($Appsetting.CloudSettings.bucketName)/$($date)/$($item)"
     $endpointUrl = $Appsetting.CloudSettings.endpointUrl
     $region = $Appsetting.CloudSettings.region
     
@@ -206,7 +210,7 @@ function UploadAndDelete {
     }
 
     # ------------ Upload cartella zip ------------
-    Write-S3Object -BucketName $bucketName -Key $FileName -File $PathFile -EndpointUrl $endpointUrl -Region $region
+    Write-S3Object -BucketName $BucketName -Key $FileName -File $PathFile -EndpointUrl $endpointUrl -Region $region
 
     # ------------ Eliminazione zip ------------
     Write-InfoLog "Start delete:$($compress.DestinationPath)"
@@ -362,7 +366,7 @@ foreach ($item in $Sites) {
             try {
                 
                 Write-InfoLog "Start upload into Wasabi: $($Library.Title)"
-                UploadAndDelete -File $compress.DestinationPath
+                UploadAndDelete -File $compress.DestinationPath -BucketName "$BucketName/$item"
                 Write-InfoLog "End upload into Wasabi: $($Library.Title) and delete .zip"
             }
             catch {
@@ -384,8 +388,13 @@ Write-InfoLog "Excel created"
 
 $errorList | Out-File -Append $fileErrorList.FullName
 
-$result = ("Backup Complete `r `n $($errorList -join "`r `n"| Out-String)")
-Write-InfoLog "Backup Complete"
+if (errorList) {
+    $result = ("ERROR: Backup Complete with errors")
+}else {
+    $result = ("Backup Complete")
+}
+
+Write-InfoLog $result
 
 if ($useTeams) {
     Send-TeamsMessage -TeamSettings $TeamsSetting -Message $result
