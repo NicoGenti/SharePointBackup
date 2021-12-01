@@ -18,7 +18,7 @@ and with Wasabi it can store your site into a cold storage for (an example) Disa
 ## Getting Started
 
 - Create a **Config** folder into script's folder.
-- Copy appsettings.json and sites.txt from [**Config**](https://github.com/NicoGenti/SharePointBackup/tree/website/Config) folder into your **Config**
+- Copy appsettings.json and sites.txt from [**Config**](https://github.com/NicoGenti/SharePointBackup/tree/main/Config) folder into your **Config**
 - For notification mail this app use SendGrid provider.
 - For notification Teams this app use Microsoft WebHook connectors.
 - For upload file from local storage to Wasabi, you need a [Wasabi](https://wasabi.com/) User.
@@ -110,7 +110,7 @@ How to have a nice installation of ***SHAREPOINT-BACKUP***
 <summary>3. Download script Windows/Linux</summary>
 
 
-- 3.1 Go to [link](https://github.com/NicoGenti/SharePointBackup/blob/website/sharepointbackup.ps1) and download the portable version for your OS
+- 3.1 Go to [link](https://github.com/NicoGenti/SharePointBackup/tree/main/sharepointbackup.ps1) and download the portable version for your OS
 
 - 3.2 HASH VERIFICATION:
 	- 2.2.1 Go into QuickhashGUI folder and download (on your Desktop) and run **QuickhashGUI** version for your OS;
