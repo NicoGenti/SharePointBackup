@@ -135,7 +135,7 @@ $Global:Longpath
 $Global:replace
 
 if ($storeInCloud) {
-    $Global:date = Get-Date -Format "yyyy-MM-dd-hh-mm-ss"
+    $Global:date = Get-Date -Format "yyyy-MM-dd-HH-mm"
     $Global:BucketName = "$($Appsetting.CloudSettings.bucketName)/$($date)"
 }
 
@@ -188,7 +188,7 @@ function ConnectToSPO{
 function UploadAndDelete {
     param (
         [string]$File,
-        $BucketName
+        $Bucket
     )
 
     $FileName = $File.Substring(($File.lastindexof("\") + 1))
@@ -210,7 +210,7 @@ function UploadAndDelete {
     }
 
     # ------------ Upload cartella zip ------------
-    Write-S3Object -BucketName $BucketName -Key $FileName -File $PathFile -EndpointUrl $endpointUrl -Region $region
+    Write-S3Object -BucketName $Bucket -Key $FileName -File $PathFile -EndpointUrl $endpointUrl -Region $region
 
     # ------------ Eliminazione zip ------------
     Write-InfoLog "Start delete:$($compress.DestinationPath)"
@@ -299,7 +299,7 @@ foreach ($item in $Sites) {
     $cmd = "Connect-PnPOnline -Url $Site -Interactive"
     Invoke-Expression $cmd
 
-    $DocumentLibraries = Get-PnPList | Where-Object {$_.BaseTemplate -eq 101 -and $_.Hidden -eq $false}
+    $DocumentLibraries = Get-PnPList | Where-Object {$_.BaseTemplate -eq 101 -and $_.Hidden -eq $false -and $_.RootFolder.ServerRelativeUrl -notlike "*/Style Library" }
     $DocumentLibraries = $DocumentLibraries | Select-Object Title, Id, RootFolder
     $EsitiRaccolte=New-Object System.Collections.Generic.List[PSObject]
     foreach ($Library in $DocumentLibraries) {
@@ -326,9 +326,10 @@ foreach ($item in $Sites) {
             $s++
             continue # go to next folder            
         }
+        $filesNotAspx = $files | Where-Object {$_.Name -notlike "*.aspx*" }
 
         Write-InfoLog "Start downloading files from site $($Site)" 
-        $esitoDownLibrary = DownloadLibrary -files $files
+        $esitoDownLibrary = DownloadLibrary -files $filesNotAspx
         $pathLibrary="$($OutputPath)$($Library.RootFolder.ServerRelativeUrl)".Replace("/", "\")
         
         $EsitiRaccolte.Add([PSCustomObject]@{
@@ -366,7 +367,7 @@ foreach ($item in $Sites) {
             try {
                 
                 Write-InfoLog "Start upload into Wasabi: $($Library.Title)"
-                UploadAndDelete -File $compress.DestinationPath -BucketName "$BucketName/$item"
+                UploadAndDelete -File $compress.DestinationPath -Bucket "$BucketName/$item"
                 Write-InfoLog "End upload into Wasabi: $($Library.Title) and delete .zip"
             }
             catch {
@@ -388,8 +389,8 @@ Write-InfoLog "Excel created"
 
 $errorList | Out-File -Append $fileErrorList.FullName
 
-if (errorList) {
-    $result = ("ERROR: Backup Complete with errors")
+if ($errorList) {
+    $result = ("ERROR: Backup Complete with errors, view the files in Logs folder")
 }else {
     $result = ("Backup Complete")
 }
