@@ -121,6 +121,7 @@ catch {
 #endregion
 
 #region CARICAMENTO VARIABILI
+$date = Get-Date -Format "yyyy-MM-dd-HH-mm"
 $Global:errorList = [System.Collections.ArrayList]@()
 $Global:fileErrorList = @{
     FileName = "ErrorList.txt"
@@ -129,13 +130,12 @@ $Global:fileErrorList = @{
 }
 New-Item -ItemType "file" -Path $fileErrorList.Path -Name $fileErrorList.FileName -Value "ERROR DETAILS: `r `n" -Force | Out-Null
 
-$Global:OutputPath = "$($Appsetting.FolderSettings.rootBackup)$($Appsetting.FolderSettings.nameBackup)$($Date)"
+$Global:OutputPath = "$($Appsetting.FolderSettings.rootBackup)$($Appsetting.FolderSettings.nameBackup)$($date)"
 $Global:tenant = $Appsetting.UserSettings.tenant
 $Global:Longpath
 $Global:replace
 
-if ($storeInCloud) {
-    $Global:date = Get-Date -Format "yyyy-MM-dd-HH-mm"
+if ($storeInCloud) {    
     $Global:BucketName = "$($Appsetting.CloudSettings.bucketName)/$($date)"
 }
 
