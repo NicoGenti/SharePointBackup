@@ -157,7 +157,7 @@ It's recommended modify only this parameters:
 
 ***IMPORTANT ONLY FOR LINUX USERS**
 
-- 3.7 Before run ./sharepointbackup set envoirment PowerShell into Linux OS:    
+- 3.7 Before run ./sharepointbackup set environment PowerShell into Linux OS:    
     - 3.7.1: new Terminal
     - 3.7.2: $: sudo apt-get update
     - 3.7.3: $: sudo apt-get install -y wget apt-transport-https software-properties-common
@@ -196,7 +196,7 @@ It's recommended modify only this parameters:
 
 ## Contributing
 
-For your question send un email to: nicolas.gentilucci@live.it
+For your question send an email to: nicolas.gentilucci@live.it
 
 ## License
 
